@@ -68,7 +68,7 @@ class Playlist(object):
         # The above only returns 100 or fewer links
         # Simulating a browser request for the load more link
         load_more_url = self._load_more_url(req)
-        while len(load_more_url):   # there is an url found
+        while len(load_more_url):  # there is an url found
             logger.debug('load more url: %s' % load_more_url)
             req = request.get(load_more_url)
             load_more = json.loads(req)
@@ -117,10 +117,10 @@ class Playlist(object):
         return (str(i).zfill(digits) for i in range(start, stop, step))
 
     def download_all(
-        self,
-        download_path=None,
-        prefix_number=True,
-        reverse_numbering=False,
+            self,
+            download_path=None,
+            prefix_number=True,
+            reverse_numbering=False,
     ):
         """Download all the videos in the the playlist. Initially, download
         resolution is 720p (or highest available), later more option
@@ -152,6 +152,9 @@ class Playlist(object):
         for link in self.video_urls:
             try:
                 yt = YouTube(link)
+                caption = yt.captions.get_by_language_code('en')
+                with open(download_path + yt.title + ".srt", 'w') as srt_file:
+                    srt_file.write(caption.generate_srt_captions())
             except Exception as e:
                 logger.debug(e)
                 if not self.suppress_exception:
