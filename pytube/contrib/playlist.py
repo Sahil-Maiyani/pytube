@@ -153,9 +153,9 @@ class Playlist(object):
         for link in self.video_urls:
             try:
                 yt = YouTube(link)
-                print(yt.title)
                 en_caption = self._get_caption(yt, "en")
                 if en_caption == -1:
+                    print("\t Skipping...", yt.title)
                     continue
             except Exception as e:
                 logger.debug(e)
@@ -167,23 +167,23 @@ class Playlist(object):
                 # TODO: this should not be hardcoded to a single user's
                 # preference
                 dl_stream = yt.streams.filter(only_audio=True).order_by('bitrate').first()
-
+                print("\t Downloading...", yt.title)
                 logger.debug('download path: %s', download_path)
                 srt_file = ""
                 if prefix_number:
                     prefix = next(prefix_gen)
                     logger.debug('file prefix is: %s', prefix)
-                    dl_stream.download(download_path, filename_prefix=prefix)
-                    srt_file = download_path + prefix + yt.title + ".srt"
+                    dl_stream.download(download_path + "/video/", filename_prefix=prefix)
+                    srt_file = download_path + "/srt/" + prefix + yt.title + ".srt"
                 else:
                     dl_stream.download(download_path)
-                    srt_file = download_path + yt.title + ".srt"
+                    srt_file = download_path + "/srt/" + yt.title + ".srt"
                 logger.debug('download complete')
 
                 with open(srt_file, 'w') as file:
                     file.write(en_caption)
 
-                vid_list.append(yt.title)
+                vid_list.append([download_path + "/video/" + yt.title + ".mp4", srt_file])
         return vid_list
 
     def _get_caption(self, yt, lan_code):
