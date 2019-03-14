@@ -80,4 +80,5 @@ class Download:
 
 
 d = Download()
+d.start()
 d.info()
