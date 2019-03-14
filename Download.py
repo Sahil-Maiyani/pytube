@@ -1,6 +1,5 @@
 import os
 import subprocess
-from pprint import pprint
 
 from pytube import Playlist
 
