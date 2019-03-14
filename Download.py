@@ -64,6 +64,7 @@ class Download:
                 hour += h
             return hour, min, sec
 
+        hour, min, sec = conversion(hour, min, sec)
         print("Collected {} hours {} minutes {.3f} seconds of data so far:)".format(hour, min, sec))
 
     def _getlength(self, file_path):
