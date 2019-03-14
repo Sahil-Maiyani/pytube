@@ -149,12 +149,14 @@ class Playlist(object):
 
         prefix_gen = self._path_num_prefix_generator(reverse_numbering)
 
+        vid_list = []
         for link in self.video_urls:
             try:
                 yt = YouTube(link)
-                caption = yt.captions.get_by_language_code('en')
-                with open(download_path + yt.title + ".srt", 'w') as srt_file:
-                    srt_file.write(caption.generate_srt_captions())
+                print(yt.title)
+                en_caption = self._get_caption(yt, "en")
+                if en_caption == -1:
+                    continue
             except Exception as e:
                 logger.debug(e)
                 if not self.suppress_exception:
@@ -164,15 +166,31 @@ class Playlist(object):
             else:
                 # TODO: this should not be hardcoded to a single user's
                 # preference
-                dl_stream = yt.streams.filter(
-                    progressive=True, subtype='mp4',
-                ).order_by('resolution').desc().first()
+                dl_stream = yt.streams.filter(only_audio=True).order_by('bitrate').first()
 
                 logger.debug('download path: %s', download_path)
+                srt_file = ""
                 if prefix_number:
                     prefix = next(prefix_gen)
                     logger.debug('file prefix is: %s', prefix)
                     dl_stream.download(download_path, filename_prefix=prefix)
+                    srt_file = download_path + prefix + yt.title + ".srt"
                 else:
                     dl_stream.download(download_path)
+                    srt_file = download_path + yt.title + ".srt"
                 logger.debug('download complete')
+
+                with open(srt_file, 'w') as file:
+                    file.write(en_caption)
+
+                vid_list.append(yt.title)
+        return vid_list
+
+    def _get_caption(self, yt, lan_code):
+        captions = yt.captions.all()
+        if captions:
+            caption = yt.captions.get_by_language_code(lan_code)
+            if caption:
+                return caption.generate_srt_captions()
+        else:
+            return -1
