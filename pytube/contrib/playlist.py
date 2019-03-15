@@ -5,7 +5,9 @@ Module to download a complete playlist from a youtube channel
 import json
 import logging
 import re
+import subprocess
 from collections import OrderedDict
+from pprint import pprint
 
 from pytube import request
 from pytube.__main__ import YouTube
@@ -166,24 +168,32 @@ class Playlist(object):
             else:
                 # TODO: this should not be hardcoded to a single user's
                 # preference
-                dl_stream = yt.streams.filter(only_audio=True).order_by('bitrate').first()
+                dl_stream = yt.streams.filter(
+                    progressive=True, subtype='mp4',
+                ).order_by('resolution').desc().first()
                 print("\t Downloading...", yt.title)
                 logger.debug('download path: %s', download_path)
                 srt_file = ""
+                video_file = ""
                 if prefix_number:
                     prefix = next(prefix_gen)
                     logger.debug('file prefix is: %s', prefix)
                     dl_stream.download(download_path + "/video/", filename_prefix=prefix)
                     srt_file = download_path + "/srt/" + prefix + yt.title + ".srt"
+                    video_file = download_path + "/video/" + prefix + yt.title + ".mp4"
                 else:
                     dl_stream.download(download_path)
                     srt_file = download_path + "/srt/" + yt.title + ".srt"
+                    video_file = download_path + "/video/" + yt.title + ".mp4"
                 logger.debug('download complete')
 
+                res = subprocess.Popen(["ffmpeg", "-i" + video_file, "-q:a 0", "-map a", video_file + ".mp3"],
+                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                pprint(res)
                 with open(srt_file, 'w') as file:
                     file.write(en_caption)
 
-                vid_list.append([download_path + "/video/" + yt.title + ".mp4", srt_file])
+                vid_list.append([video_file, srt_file])
         return vid_list
 
     def _get_caption(self, yt, lan_code):
