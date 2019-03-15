@@ -180,16 +180,11 @@ class Playlist(object):
                     logger.debug('file prefix is: %s', prefix)
                     dl_stream.download(download_path + "/video/", filename_prefix=prefix)
                     srt_file = download_path + "/srt/" + prefix + yt.title + ".srt"
-                    video_file = download_path + "/video/" + prefix + yt.title + ".mp4"
                 else:
                     dl_stream.download(download_path)
                     srt_file = download_path + "/srt/" + yt.title + ".srt"
-                    video_file = download_path + "/video/" + yt.title + ".mp4"
                 logger.debug('download complete')
 
-                res = subprocess.Popen(["ffmpeg", "-i" + video_file, "-q:a 0", "-map a", video_file + ".mp3"],
-                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                pprint(res)
                 with open(srt_file, 'w') as file:
                     file.write(en_caption)
 
